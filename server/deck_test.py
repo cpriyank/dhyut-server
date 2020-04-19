@@ -6,10 +6,10 @@ class TestDeckMethods(unittest.TestCase):
         self.a_deck = Deck()
 
     def test_initialization(self):
-        self.assertEqual(len(self.a_deck.get_cards()), 52)
+        self.assertEqual(len(self.a_deck.get_cards()), Deck.STANDARD_DECK_SIZE)
 
     def test_size(self):
-        self.assertEqual(self.a_deck.size(), 52)
+        self.assertEqual(self.a_deck.size(), Deck.STANDARD_DECK_SIZE)
 
     def test_least_valued_card_removal(self):
         self.a_deck.remove_least_valued_n_cards(8)
@@ -29,6 +29,10 @@ class TestDeckMethods(unittest.TestCase):
         contains_fours = sum(card.rank.value == "4" for card in self.a_deck.get_cards())
         self.assertEqual(contains_threes, 1)
         self.assertEqual(contains_fours, 3)
+
+    def test_iteration(self):
+        number_of_cards = sum(1 for _ in self.a_deck)
+        self.assertEqual(number_of_cards, Deck.STANDARD_DECK_SIZE)
 
 if __name__ == "__main__":
     unittest.main()
