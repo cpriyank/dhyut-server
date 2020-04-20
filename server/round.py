@@ -19,7 +19,8 @@ class Round:
         return self.turns[key]
 
     def add_turn(self, player, card):
-        turn = Turn(self.turn_number_generator + 1, player.name, card)
+        turn = Turn(self.turn_number_generator + 1, player, card)
+        # TODO: log the alternative?
         if not any(existing_turn == turn for existing_turn in self.turns):
             self.turn_number_generator += 1
             self.turns.append(turn)
@@ -28,6 +29,7 @@ class Round:
         """
         Allow undoing last turn
         """
+        # TODO: log the alternative?
         if self.turns:
             self.turn_number_generator -= 1
             return self.turns.pop()
