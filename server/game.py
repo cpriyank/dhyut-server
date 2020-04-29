@@ -6,6 +6,7 @@ from itertools import islice
 from round import Round
 from turn import Turn
 
+
 class Game:
     def __init__(self):
         # player is an object that will contain cards as well
@@ -29,12 +30,15 @@ class Game:
         if self.rounds:
             if not len(self.rounds[-1].turns) == len(self.players):
                 raise ValueError("not all the players have finished")
-            self.players[player_id].add_cards_to_cards_won(list(turn.card_added for turn in self.rounds[-1]))
+            self.players[player_id].add_cards_to_cards_won(
+                list(turn.card_added for turn in self.rounds[-1])
+            )
             return self.players[player_id]
         else:
             # TODO: throw error instead?
             print("tried to declare winner without a round")
 
+    # TODO: Currently, there's no automated guard against player adding card twice
     def add_player_move(self, player_id, card_text):
         if not self.rounds:
             self.rounds.append(Round())
@@ -57,15 +61,27 @@ class Game:
         total_cards = sum(deck.size() for deck in decks)
         # assumes number_of_players is non zero
         number_of_cards_to_discard = total_cards % number_of_players
-        number_of_cards_to_remove_from_all_decks = number_of_cards_to_discard // len(decks)
-        all_but_initial_decks = (deck.remove_least_valued_n_cards(number_of_cards_to_remove_from_all_decks) for deck in decks[1:])
-        number_of_additional_cards_to_remove_from_a_deck = number_of_cards_to_discard % len(decks)
-        decks = list(all_but_initial_decks) + [decks[0].remove_least_valued_n_cards(number_of_cards_to_remove_from_all_decks + number_of_additional_cards_to_remove_from_a_deck)]
+        number_of_cards_to_remove_from_all_decks = number_of_cards_to_discard // len(
+            decks
+        )
+        all_but_initial_decks = (
+            deck.remove_least_valued_n_cards(number_of_cards_to_remove_from_all_decks)
+            for deck in decks[1:]
+        )
+        number_of_additional_cards_to_remove_from_a_deck = (
+            number_of_cards_to_discard % len(decks)
+        )
+        decks = list(all_but_initial_decks) + [
+            decks[0].remove_least_valued_n_cards(
+                number_of_cards_to_remove_from_all_decks
+                + number_of_additional_cards_to_remove_from_a_deck
+            )
+        ]
         return [card for deck in decks for card in deck]
 
     def distribute_cards(self, cards):
         """
-        At this points, len(cards) % len(self.players) is 0 and cards are well
+        At this point, len(cards) % len(self.players) is 0 and cards are well
         shuffled
         """
         number_of_cards_per_player = len(cards) // len(self.players)
@@ -76,7 +92,7 @@ class Game:
     def prepare_cards_for_distribution(self, number_of_decks):
         # assumes self.players is initialized
         decks = [Deck() for _ in range(number_of_decks)]
-        cards = self.adjust_number_of_cards_for_players(number_of_decks, decks, len(self.players))
+        cards = self.adjust_number_of_cards_for_players(decks, len(self.players))
         # as an exercise, implement your own O(n) shuffle function based on fisher-yates-knuth shuffle
         shuffle(cards)
         return cards

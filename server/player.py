@@ -34,7 +34,7 @@ class Player:
         self.cards.append(card)
 
     def add_cards_to_cards_won(self, cards):
-        self.cards_won.extend(cards)
+        self.card_won.extend(cards)
         # TODO: Update points
 
 
