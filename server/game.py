@@ -1,10 +1,10 @@
-from random import shuffle
-from player import Player
-from deck import Deck
-from card import Card
 from itertools import islice
+from random import shuffle
+
+from card import Card
+from deck import Deck
+from player import Player
 from round import Round
-from turn import Turn
 
 
 class Game:
@@ -57,7 +57,8 @@ class Game:
             player_id = turn.player.id
             self.players[player_id].undo_put_card(turn.card_added)
 
-    def adjust_number_of_cards_for_players(self, decks, number_of_players):
+    @staticmethod
+    def adjust_number_of_cards_for_players(decks, number_of_players):
         total_cards = sum(deck.size() for deck in decks)
         # assumes number_of_players is non zero
         number_of_cards_to_discard = total_cards % number_of_players
