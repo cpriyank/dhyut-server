@@ -1,19 +1,18 @@
-import uuid
-from player import Player
 from game import Game
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
-from json_encoder import GameObjectsEncoder
+from json_encoder import GameObjectsEncoder, CustomPlayerEncoder
 from invalid_usage import InvalidUsage
+import json
 
 # configuration
 DEBUG = True
 
 # instantiate the app
 app = Flask(__name__)
-app.config.from_object(__name__)
 app.json_encoder = GameObjectsEncoder
+app.config.from_object(__name__)
 
 # enable CORS
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -21,6 +20,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 game = Game()
+
 
 # sanity check route
 @app.route("/ping", methods=["GET"])
@@ -33,6 +33,10 @@ def handle_invalid_usage(error):
     response = jsonify(error.to_dict())
     response.status_code = error.status_code
     return response
+
+
+def broadcast_cards_update():
+    socketio.emit("updateCardView", json.dumps(game.get_players(), cls=CustomPlayerEncoder), broadcast=True)
 
 
 ################################################################################
@@ -50,9 +54,12 @@ def declare_current_winner(player_id):
 def undo_last_move():
     response_object = {"status": "success"}
     game.undo_move()
+    response_object['players'] = jsonify(game.get_players())
+    socketio.emit("updateCardView", jsonify(response_object), broadcast=True)
     return jsonify(response_object)
 
 
+# TODO: Make this idempotent
 @app.route("/game/start", methods=["PUT"])
 def distribute_cards():
     response_object = {"status": "success"}
@@ -67,6 +74,7 @@ def distribute_cards():
     # TODO: only expose one function from game to distribute cards
     cards = game.prepare_cards_for_distribution(number_of_decks)
     game.distribute_cards(cards)
+    broadcast_cards_update()
     return jsonify(response_object)
 
 
@@ -89,6 +97,8 @@ def control_player(player_id):
         request_data = request.get_json()
         card_text = request_data["card"]
         game.add_player_move(player_id, card_text)
+        response_object["players"] = game.get_players()
+        broadcast_cards_update()
     elif request.method == "PUT":
         # this is called when a player joins the game
         player = game.add_player(player_id)
@@ -102,17 +112,13 @@ def control_player(player_id):
 ################################################################################
 # Socket endpoints
 ################################################################################
-@socketio.on("messageChannel")
-def test_message(message):
-    emit("messageChannel", {"data": "got it!"})
-
-
 # when all the players have joined, admin can call this socket channel to indicate
 # start of the game. This will broadcast list of players joined.
 @socketio.on("startGame")
-def start_game(number_of_decks):
-    game.distribute_cards(number_of_decks)
-    emit("gameStarted", game.get_players())
+def start_game():
+    # response = {"players": game.get_players()}
+    response = game.get_players()
+    emit("gameStarted", jsonify(response), broadcast=True)
 
 
 @socketio.on("pingServer")
