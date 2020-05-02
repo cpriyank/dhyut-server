@@ -1,6 +1,7 @@
 import unittest
 from deck import Deck
 
+
 class TestDeckMethods(unittest.TestCase):
     def setUp(self):
         self.a_deck = Deck()
@@ -33,6 +34,7 @@ class TestDeckMethods(unittest.TestCase):
     def test_iteration(self):
         number_of_cards = sum(1 for _ in self.a_deck)
         self.assertEqual(number_of_cards, Deck.STANDARD_DECK_SIZE)
+
 
 if __name__ == "__main__":
     unittest.main()
