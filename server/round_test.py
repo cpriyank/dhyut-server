@@ -6,6 +6,7 @@ from suit import Suit
 from rank import Rank
 from itertools import islice, product
 
+
 class TestDeckMethods(unittest.TestCase):
     def setUp(self):
         self.a_round = Round()
@@ -23,7 +24,8 @@ class TestDeckMethods(unittest.TestCase):
         self.assertEqual(self.a_round[2].number, 3)
         undoed_turn = self.a_round.undo_turn()
         self.assertEqual(undoed_turn.number, 3)
-        self.assertEqual(undoed_turn.player_name, 2)
+        self.assertEqual(undoed_turn.player.name, 2)
+
 
 if __name__ == "__main__":
     unittest.main()
